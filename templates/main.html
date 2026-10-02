@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>맞춤 상품 | FinanFit</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/hana.css') }}">
+  <style>
+    .hero {
+      background: linear-gradient(120deg, var(--hana-deep) 0%, var(--hana) 60%, var(--hana-mint) 100%);
+      color: #fff;
+    }
+    .hero-inner {
+      max-width: 1200px; margin: 0 auto; padding: 44px 24px 96px;
+      display: flex; align-items: center; gap: 24px;
+    }
+    .hero .avatar.lg { border: 3px solid rgba(255, 255, 255, .7); background: #fff; }
+    .hero h1 { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+    .hero p { opacity: .85; margin-top: 4px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .tags span {
+      font-size: 13px; padding: 6px 12px; border-radius: 999px;
+      background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .25);
+    }
+    .tags b { font-weight: 700; margin-left: 4px; }
+
+    .content { max-width: 1200px; margin: -60px auto 0; padding: 0 24px; position: relative; }
+    .sec-head {
+      background: var(--white); border-radius: var(--radius) var(--radius) 0 0;
+      padding: 26px 28px 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+    }
+    .sec-head h2 { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+    .sec-head h2 em { font-style: normal; color: var(--hana); }
+    .sec-head p { color: var(--text-sub); font-size: 14px; margin-top: 4px; }
+    .cards-wrap { background: var(--white); border-radius: 0 0 var(--radius) var(--radius); padding: 22px 28px 28px; box-shadow: var(--shadow); }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+
+    .card {
+      position: relative; border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 24px; display: flex; flex-direction: column; background: var(--white);
+      transition: border-color .2s, box-shadow .2s, transform .2s;
+    }
+    .card:hover { border-color: var(--hana); box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+    .card.best { border: 2px solid var(--hana); }
+    .rank {
+      position: absolute; top: -1px; right: 20px; background: var(--hana); color: #fff;
+      font-size: 12px; font-weight: 800; padding: 6px 10px 8px; border-radius: 0 0 8px 8px;
+    }
+    .card:not(.best) .rank { background: var(--hana-light); color: var(--hana-deep); }
+    .cat { font-size: 13px; font-weight: 700; color: var(--hana); }
+    .card h3 { font-size: 20px; font-weight: 800; margin: 6px 0 8px; letter-spacing: -.02em; padding-right: 48px; }
+    .card .desc { color: var(--text-sub); font-size: 14px; min-height: 42px; }
+
+    .rate { margin: 22px 0 18px; padding: 18px; background: var(--hana-tint); border-radius: 12px; }
+    .rate .lbl { font-size: 13px; color: var(--text-sub); }
+    .rate .max { font-size: 34px; font-weight: 800; color: var(--hana); letter-spacing: -.02em; line-height: 1.2; }
+    .rate .max small { font-size: 16px; font-weight: 700; }
+    .rate .base { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+
+    dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 14px; font-size: 14px; }
+    dt { color: var(--text-mute); }
+    dd { font-weight: 600; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { font-style: normal; font-size: 11px; font-weight: 800; color: #fff; background: var(--point); padding: 2px 6px; border-radius: 4px; margin-left: 4px; vertical-align: 1px; }
+    .detail-link { display: block; text-align: center; margin-top: 10px; font-size: 13px; color: var(--text-sub); }
+    .detail-link:hover { color: var(--hana); }
+    .benefits { list-style: none; margin: 16px 0 0; padding-top: 14px; border-top: 1px dashed var(--line); font-size: 13px; color: var(--text-sub); display: grid; gap: 4px; }
+    .benefits li::before { content: "✓"; color: var(--hana); font-weight: 800; margin-right: 6px; }
+    .reasons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+    .reasons span { font-size: 12px; font-weight: 700; color: var(--hana-deep); background: var(--hana-light); padding: 4px 10px; border-radius: 6px; }
+    .card .btn { margin-top: auto; height: 46px; font-size: 15px; }
+    .card .spacer { flex: 1; min-height: 20px; }
+
+    .note { font-size: 12.5px; color: var(--text-mute); margin-top: 16px; }
+    .empty { padding: 48px 0; text-align: center; color: var(--text-sub); }
+
+    .banner {
+      margin-top: 24px; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 24px 28px; display: flex; align-items: center; gap: 20px;
+    }
+    .banner .bot-icon { width: 64px; height: 64px; flex-shrink: 0; border: 2px solid var(--hana-light); }
+    .banner h3 { font-size: 18px; font-weight: 800; }
+    .banner p { color: var(--text-sub); font-size: 14px; }
+    .banner .btn { margin-left: auto; height: 46px; flex-shrink: 0; }
+
+    @media (max-width: 980px) { .cards { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) {
+      .hero-inner { padding: 28px 16px 84px; flex-direction: column; align-items: flex-start; gap: 14px; }
+      .hero h1 { font-size: 22px; }
+      .content { padding: 0 16px; }
+      .sec-head, .cards-wrap { padding-left: 18px; padding-right: 18px; }
+      .banner { flex-wrap: wrap; padding: 20px 18px; }
+      .banner .btn { margin-left: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+{% macro avatar(u, cls='') -%}
+  {%- if u['profile_image'] -%}
+    <img class="avatar {{ cls }}" src="{{ url_for('static', filename='uploads/' ~ u['profile_image']) }}" alt="">
+  {%- else -%}
+    <span class="avatar {{ cls }}">{{ u['name'][:1] }}</span>
+  {%- endif -%}
+{%- endmacro %}
+
+<header class="gnb">
+  <div class="gnb-inner">
+    <a href="{{ url_for('main') }}"><span class="logo"></span></a>
+    <nav class="gnb-menu">
+      <a class="active" href="{{ url_for('main') }}">맞춤 추천</a>
+      <a href="{{ url_for('chatbot') }}">AI 상담</a>
+    </nav>
+    <div class="gnb-right">
+      <span class="gnb-user">{{ avatar(user) }} {{ user['name'] }}<small>손님</small></span>
+      <a class="gnb-logout" href="{{ url_for('logout') }}">로그아웃</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    {{ avatar(user, 'lg') }}
+    <div>
+      <h1>{{ user['name'] }} 손님, 안녕하세요!</h1>
+      <p>손님의 정보를 바탕으로 가장 잘 맞는 상품을 골라 봤어요.</p>
+      <div class="tags">
+        <span>나이<b>{{ user['age'] }}세</b></span>
+        <span>투자성향<b>{{ user['risk'] }}</b></span>
+        <span>직업<b>{{ user['job'] }}</b></span>
+        <span>연소득<b>{{ income_label(user['income']) }}</b></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="content">
+  <div class="sec-head">
+    <div>
+      <h2><em>{{ user['name'] }}</em> 손님을 위한 추천 상품 TOP 3</h2>
+      <p>정기예금 {{ total }}개 중 나이 · 투자성향 · 직업 · 소득을 종합해 추천했습니다.</p>
+    </div>
+  </div>
+  <div class="cards-wrap">
+    {% if products %}
+    <div class="cards">
+      {% for p in products %}
+      <article class="card {% if loop.first %}best{% endif %}">
+        <span class="rank">{% if loop.first %}BEST{% else %}{{ loop.index }}위{% endif %}</span>
+        <span class="cat">{{ p.bank }} · {{ p.category }}{% if 'special' in p.tags %} <i class="badge">특판</i>{% endif %}</span>
+        <h3>{{ p.name }}</h3>
+        <p class="desc">{{ p.description }}</p>
+
+        <div class="rate">
+          <div class="lbl">최고 금리 (세전, 연)</div>
+          <div class="max">{{ '%.2f'|format(p.max_rate) }}<small>%</small></div>
+          <div class="base">기본 연 {{ '%.2f'|format(p.base_rate) }}%</div>
+        </div>
+
+        <dl>
+          <dt>가입기간</dt><dd title="{{ p.term }}">{{ p.term }}</dd>
+          <dt>가입금액</dt><dd title="{{ p.amount }}">{{ p.amount }}</dd>
+          <dt>가입방법</dt><dd title="{{ p.method }}">{{ p.method }}</dd>
+          <dt>가입대상</dt><dd title="{{ p.target }}">{{ p.target }}</dd>
+          {% if p.rate_type %}<dt>금리유형</dt><dd>{{ p.rate_type }}</dd>{% endif %}
+        </dl>
+
+        {% if p.benefits %}
+        <ul class="benefits">{% for b in p.benefits %}<li>{{ b }}</li>{% endfor %}</ul>
+        {% endif %}
+
+        {% if p.reasons %}
+        <div class="reasons">{% for r in p.reasons %}<span>{{ r }}</span>{% endfor %}</div>
+        {% endif %}
+
+        <div class="spacer"></div>
+        <a class="btn {% if loop.first %}btn-primary{% else %}btn-outline{% endif %}"
+           href="{{ url_for('chatbot', q=p.bank ~ ' ' ~ p.name ~ ' 상품에 대해 자세히 알려줘') }}">AI 상담사에게 물어보기</a>
+        {% if p.url %}<a class="detail-link" href="{{ p.url }}" target="_blank" rel="noopener">상품 상세 보기 ↗</a>{% endif %}
+      </article>
+      {% endfor %}
+    </div>
+    <p class="note">※ 금리는 세전·12개월 기준이며, 최고 금리는 우대조건을 모두 충족했을 때 적용됩니다.
+      {% if updated %}(네이버페이 예적금 금리정보 {{ updated }} 기준){% endif %}</p>
+    {% else %}
+    <div class="empty">현재 조건에 맞는 상품이 없습니다. AI 상담사에게 문의해 주세요.</div>
+    {% endif %}
+  </div>
+
+  <div class="banner">
+    <span class="bot-icon"></span>
+    <div>
+      <h3>어떤 상품이 좋을지 고민되시나요?</h3>
+      <p>AI 상담사가 손님의 상황에 맞춰 상품을 비교하고 설명해 드려요.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('chatbot') }}">AI 상담 시작하기</a>
+  </div>
+</main>
+
+<div class="footer">© FinanFit. All rights reserved.</div>
+
+<a class="chat-fab" href="{{ url_for('chatbot') }}" aria-label="AI 상담 열기">
+  <span class="bubble">AI 상담사에게 물어보세요</span>
+  <span class="bot-icon"></span>
+</a>
+</body>
+</html>

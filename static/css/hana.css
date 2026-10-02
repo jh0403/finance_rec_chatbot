@@ -1,0 +1,145 @@
+/* 하나은행 톤앤매너 공통 스타일 */
+:root {
+  --hana: #008485;          /* 하나 그린 */
+  --hana-dark: #006a6b;
+  --hana-deep: #00494a;
+  --hana-mint: #00a59b;
+  --hana-light: #e8f5f4;
+  --hana-tint: #f2f9f8;
+  --point: #e5003f;         /* 포인트 레드 (최소 사용) */
+  --text: #1b1d1f;
+  --text-sub: #5f6368;
+  --text-mute: #9aa0a6;
+  --line: #e3e7ea;
+  --line-strong: #cfd5d9;
+  --bg: #f4f6f7;
+  --white: #ffffff;
+  --radius: 14px;
+  --shadow: 0 2px 10px rgba(0, 60, 60, .06);
+  --shadow-lg: 0 12px 32px rgba(0, 60, 60, .12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: "Pretendard Variable", Pretendard, -apple-system, "Malgun Gothic", sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; cursor: pointer; border: 0; background: none; }
+input, select, textarea { font: inherit; color: inherit; }
+
+/* 로고: logo.png 여백을 잘라 가운데만 보여준다 */
+.logo {
+  display: block;
+  height: 40px;
+  aspect-ratio: 4 / 1;
+  background: url("../logo.png") center / 152% auto no-repeat;
+}
+.logo.lg { height: 56px; }
+
+/* 상단 GNB */
+.gnb {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+}
+.gnb-inner {
+  max-width: 1200px; margin: 0 auto; height: 68px;
+  padding: 0 24px;
+  display: flex; align-items: center; gap: 32px;
+}
+.gnb-menu { display: flex; gap: 28px; font-weight: 600; font-size: 16px; }
+.gnb-menu a { color: var(--text-sub); padding: 22px 0; border-bottom: 3px solid transparent; }
+.gnb-menu a:hover { color: var(--hana); }
+.gnb-menu a.active { color: var(--hana); border-bottom-color: var(--hana); }
+.gnb-right { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 14px; }
+.gnb-user { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.gnb-user small { color: var(--text-sub); font-weight: 400; }
+.gnb-logout { color: var(--text-sub); padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; }
+.gnb-logout:hover { border-color: var(--hana); color: var(--hana); }
+
+/* 아바타 */
+.avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  object-fit: cover; flex-shrink: 0;
+  background: var(--hana-light); color: var(--hana);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+}
+.avatar.lg { width: 72px; height: 72px; font-size: 28px; }
+
+/* 버튼 */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 52px; padding: 0 24px; border-radius: 10px;
+  font-size: 16px; font-weight: 700; transition: background .15s, border-color .15s;
+}
+.btn-primary { background: var(--hana); color: var(--white); }
+.btn-primary:hover { background: var(--hana-dark); }
+.btn-outline { border: 1px solid var(--hana); color: var(--hana); background: var(--white); }
+.btn-outline:hover { background: var(--hana-tint); }
+.btn-block { width: 100%; }
+
+/* 폼 */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 14px; font-weight: 600; color: var(--text); }
+.field label .req { color: var(--point); margin-left: 2px; }
+.input, .select {
+  height: 52px; padding: 0 16px;
+  border: 1px solid var(--line-strong); border-radius: 10px;
+  background: var(--white); outline: none; transition: border-color .15s, box-shadow .15s;
+  width: 100%;
+}
+.input:focus, .select:focus { border-color: var(--hana); box-shadow: 0 0 0 3px rgba(0, 132, 133, .12); }
+.input::placeholder { color: var(--text-mute); }
+.hint { font-size: 12.5px; color: var(--text-mute); }
+
+/* 알림 메시지 */
+.flash-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.flash {
+  padding: 12px 14px; border-radius: 10px; font-size: 14px;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.flash.error { background: #fff1f4; color: #b0002f; border: 1px solid #ffd3dd; }
+.flash.info  { background: var(--hana-light); color: var(--hana-deep); border: 1px solid #c4e6e3; }
+
+/* 챗봇 플로팅 버튼: bot.png 여백을 잘라 원형으로 */
+.bot-icon {
+  display: block; border-radius: 50%;
+  background: #fff url("../bot.png") center / 333% auto no-repeat;
+}
+.chat-fab {
+  position: fixed; right: 28px; bottom: 28px; z-index: 100;
+  display: flex; align-items: center; gap: 10px;
+}
+.chat-fab .bot-icon {
+  width: 68px; height: 68px;
+  box-shadow: var(--shadow-lg); border: 3px solid var(--hana);
+  transition: transform .2s;
+}
+.chat-fab:hover .bot-icon { transform: translateY(-3px) scale(1.04); }
+.chat-fab .bubble {
+  background: var(--white); color: var(--hana-deep); font-weight: 700; font-size: 14px;
+  padding: 10px 14px; border-radius: 14px 14px 4px 14px; box-shadow: var(--shadow-lg);
+  opacity: 0; transform: translateX(8px); transition: .2s; pointer-events: none;
+  white-space: nowrap;
+}
+.chat-fab:hover .bubble { opacity: 1; transform: none; }
+
+.footer {
+  text-align: center; font-size: 12.5px; color: var(--text-mute); padding: 32px 16px 40px;
+}
+
+@media (max-width: 720px) {
+  .gnb-inner { padding: 0 16px; gap: 16px; }
+  .gnb-menu { display: none; }
+  .gnb-user small { display: none; }
+  .logo { height: 32px; }
+  .chat-fab { right: 16px; bottom: 16px; }
+  .chat-fab .bot-icon { width: 58px; height: 58px; }
+}

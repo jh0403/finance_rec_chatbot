@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 상품 상담 | FinanFit</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/hana.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <style>
+    html, body { height: 100%; }
+    body { background: var(--white); display: flex; flex-direction: column; }
+    .gnb { position: static; }
+    .gnb-inner { max-width: none; height: 60px; }
+    .new-chat {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600;
+      color: var(--hana-deep); padding: 7px 12px; border-radius: 8px;
+    }
+    .new-chat:hover { background: var(--hana-tint); }
+    .new-chat svg { width: 16px; height: 16px; }
+
+    .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+    .chat.started { justify-content: flex-start; }
+    .thread { overflow-y: auto; }
+    .chat.started .thread { flex: 1; }
+    .col { max-width: 780px; margin: 0 auto; padding: 0 20px; width: 100%; }
+
+    /* 첫 화면 */
+    .welcome { text-align: center; padding: 24px 0 28px; }
+    .welcome .bot-icon { width: 76px; height: 76px; margin: 0 auto 18px; border: 2px solid var(--hana-light); }
+    .welcome h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+    .welcome h1 em { font-style: normal; color: var(--hana); }
+    .welcome p { color: var(--text-sub); margin-top: 8px; }
+    .chat.started .welcome { display: none; }
+
+    /* 메시지 */
+    .messages { display: flex; flex-direction: column; gap: 28px; padding: 28px 0 12px; }
+    .msg-user { align-self: flex-end; max-width: 78%; background: var(--hana-light); color: var(--text);
+      padding: 12px 18px; border-radius: 20px 20px 6px 20px; white-space: pre-wrap; word-break: break-word; }
+    .msg-ai { display: flex; gap: 14px; align-items: flex-start; }
+    .msg-ai .bot-icon { width: 34px; height: 34px; flex-shrink: 0; border: 1px solid var(--line); }
+    .msg-ai .body { flex: 1; min-width: 0; line-height: 1.75; padding-top: 4px; word-break: break-word; }
+    .msg-ai .body.error { color: #b0002f; }
+
+    .body > :first-child { margin-top: 0; }
+    .body p, .body ul, .body ol, .body table, .body pre, .body blockquote { margin: 0 0 12px; }
+    .body ul, .body ol { padding-left: 22px; }
+    .body li { margin: 3px 0; }
+    .body h1, .body h2, .body h3, .body h4 { font-size: 17px; margin: 18px 0 8px; font-weight: 800; }
+    .body strong { color: var(--hana-deep); }
+    .body a { color: var(--hana); text-decoration: underline; }
+    .body code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 13.5px; }
+    .body pre { background: var(--bg); padding: 14px; border-radius: 10px; overflow-x: auto; }
+    .body pre code { background: none; padding: 0; }
+    .body blockquote { border-left: 3px solid var(--hana); padding-left: 12px; color: var(--text-sub); }
+    .body table { border-collapse: collapse; width: 100%; font-size: 14px; display: block; overflow-x: auto; }
+    .body th, .body td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; white-space: nowrap; }
+    .body th { background: var(--hana-tint); color: var(--hana-deep); font-weight: 700; }
+
+    .typing { display: inline-flex; gap: 4px; padding: 10px 0; }
+    .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--hana); opacity: .3; animation: blink 1.2s infinite; }
+    .typing i:nth-child(2) { animation-delay: .2s; } .typing i:nth-child(3) { animation-delay: .4s; }
+    @keyframes blink { 50% { opacity: 1; } }
+
+    /* 입력창 */
+    .composer-area { padding: 8px 0 18px; background: var(--white); }
+    .composer {
+      display: flex; align-items: flex-end; gap: 8px;
+      border: 1px solid var(--line-strong); border-radius: 26px; padding: 8px 8px 8px 22px;
+      background: var(--white); box-shadow: 0 4px 20px rgba(0, 60, 60, .07); transition: border-color .15s, box-shadow .15s;
+    }
+    .composer:focus-within { border-color: var(--hana); box-shadow: 0 4px 24px rgba(0, 132, 133, .14); }
+    .composer textarea {
+      flex: 1; border: 0; outline: none; resize: none; background: transparent;
+      font-size: 16px; line-height: 1.5; padding: 9px 0; max-height: 200px;
+    }
+    .send {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      background: var(--hana); color: #fff; display: flex; align-items: center; justify-content: center;
+      transition: background .15s, opacity .15s;
+    }
+    .send:hover { background: var(--hana-dark); }
+    .send:disabled { background: var(--line-strong); cursor: default; }
+    .send svg { width: 20px; height: 20px; }
+    .send .stop { display: none; }
+    .send.streaming .stop { display: block; } .send.streaming .arrow { display: none; }
+
+    .suggest { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    .suggest button {
+      text-align: left; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px;
+      font-size: 14px; color: var(--text); transition: .15s; background: var(--white);
+    }
+    .suggest button:hover { border-color: var(--hana); background: var(--hana-tint); }
+    .suggest button b { display: block; font-weight: 700; margin-bottom: 2px; }
+    .suggest button span { color: var(--text-mute); font-size: 13px; }
+    .chat.started .suggest { display: none; }
+    .disclaimer { text-align: center; font-size: 12px; color: var(--text-mute); margin-top: 10px; }
+    .warn { background: #fff8e6; border: 1px solid #ffe2a3; color: #8a5a00; font-size: 14px; padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; }
+
+    @media (max-width: 640px) {
+      .col { padding: 0 16px; }
+      .welcome h1 { font-size: 23px; }
+      .suggest { grid-template-columns: 1fr; }
+      .suggest button:nth-child(n+3) { display: none; }
+      .msg-user { max-width: 88%; }
+      .new-chat span { display: none; }
+    }
+  </style>
+</head>
+<body>
+{% macro avatar(u) -%}
+  {%- if u['profile_image'] -%}
+    <img class="avatar" src="{{ url_for('static', filename='uploads/' ~ u['profile_image']) }}" alt="">
+  {%- else -%}
+    <span class="avatar">{{ u['name'][:1] }}</span>
+  {%- endif -%}
+{%- endmacro %}
+
+<header class="gnb">
+  <div class="gnb-inner">
+    <a href="{{ url_for('main') }}"><span class="logo"></span></a>
+    <nav class="gnb-menu">
+      <a href="{{ url_for('main') }}">맞춤 추천</a>
+      <a class="active" href="{{ url_for('chatbot') }}">AI 상담</a>
+    </nav>
+    <div class="gnb-right">
+      <button class="new-chat" id="newChat" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span>새 상담</span>
+      </button>
+      <span class="gnb-user">{{ avatar(user) }}</span>
+    </div>
+  </div>
+</header>
+
+<main class="chat" id="chat">
+  <div class="thread" id="thread">
+    <div class="col">
+      <div class="welcome">
+        <span class="bot-icon"></span>
+        <h1><em>{{ user['name'] }}</em> 손님, 무엇을 도와드릴까요?</h1>
+        <p>예금·적금 상품 비교부터 목돈 굴리는 방법까지 편하게 물어보세요.</p>
+      </div>
+      <div class="messages" id="messages"></div>
+    </div>
+  </div>
+
+  <div class="composer-area">
+    <div class="col">
+      {% if not ai_ready %}
+      <div class="warn">⚠️ .env 파일에 OPENAI_API_KEY를 설정한 뒤 서버를 다시 시작해 주세요.</div>
+      {% endif %}
+      <form class="composer" id="composer">
+        <textarea id="input" rows="1" placeholder="상품에 대해 무엇이든 물어보세요"></textarea>
+        <button class="send" id="send" type="submit" aria-label="보내기" disabled>
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          <svg class="stop" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>
+        </button>
+      </form>
+      <div class="suggest">
+        <button type="button" data-q="제 정보에 맞는 예금·적금 상품을 추천해 주세요."><b>맞춤 상품 추천</b><span>내 조건에 딱 맞는 상품은?</span></button>
+        <button type="button" data-q="예금과 적금의 차이를 쉽게 설명해 주세요."><b>예금 vs 적금</b><span>무엇이 다른지 알려줘</span></button>
+        <button type="button" data-q="1천만원을 1년 동안 안전하게 굴리려면 어떤 상품이 좋을까요?"><b>목돈 굴리기</b><span>1천만원, 1년 동안 어디에?</span></button>
+        <button type="button" data-q="저에게 추천된 상품 3개의 금리와 조건을 표로 비교해 주세요."><b>추천 상품 비교</b><span>TOP 3 금리·조건을 표로</span></button>
+      </div>
+      <p class="disclaimer">AI 상담사는 실수할 수 있습니다. 가입 전 상품설명서와 약관을 꼭 확인해 주세요.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+  const chat = document.getElementById('chat');
+  const thread = document.getElementById('thread');
+  const list = document.getElementById('messages');
+  const form = document.getElementById('composer');
+  const input = document.getElementById('input');
+  const sendBtn = document.getElementById('send');
+  const STORE_KEY = 'finanfit_chat_{{ user["id"] }}';
+
+  let convo = [];
+  let controller = null;
+
+  function renderMarkdown(text) {
+    if (window.marked && window.DOMPurify) {
+      return DOMPurify.sanitize(marked.parse(text, { breaks: true, gfm: true }));
+    }
+    const d = document.createElement('div'); d.textContent = text;
+    return d.innerHTML.replace(/\n/g, '<br>');
+  }
+
+  function nearBottom() { return thread.scrollHeight - thread.scrollTop - thread.clientHeight < 120; }
+  function scrollDown() { thread.scrollTop = thread.scrollHeight; }
+
+  function addUser(text) {
+    const el = document.createElement('div');
+    el.className = 'msg-user'; el.textContent = text;
+    list.appendChild(el);
+  }
+  function addAi(text) {
+    const el = document.createElement('div');
+    el.className = 'msg-ai';
+    el.innerHTML = '<span class="bot-icon"></span><div class="body"></div>';
+    const body = el.querySelector('.body');
+    body.innerHTML = text == null ? '<span class="typing"><i></i><i></i><i></i></span>' : renderMarkdown(text);
+    list.appendChild(el);
+    return body;
+  }
+
+  function save() { try { sessionStorage.setItem(STORE_KEY, JSON.stringify(convo)); } catch (e) {} }
+  function restore() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(STORE_KEY) || '[]');
+      if (!Array.isArray(saved) || !saved.length) return;
+      convo = saved;
+      convo.forEach(m => m.role === 'user' ? addUser(m.content) : addAi(m.content));
+      chat.classList.add('started');
+      scrollDown();
+    } catch (e) {}
+  }
+
+  function setStreaming(on) {
+    sendBtn.classList.toggle('streaming', on);
+    sendBtn.setAttribute('aria-label', on ? '중지' : '보내기');
+    sendBtn.disabled = on ? false : !input.value.trim();
+  }
+
+  async function send(text) {
+    text = text.trim();
+    if (!text || controller) return;
+    chat.classList.add('started');
+    addUser(text);
+    convo.push({ role: 'user', content: text });
+    save();
+    input.value = ''; autoGrow();
+    const body = addAi(null);
+    scrollDown();
+
+    controller = new AbortController();
+    setStreaming(true);
+    let answer = '';
+    try {
+      const res = await fetch('{{ url_for("api_chat") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: convo }),
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        let msg = `요청에 실패했습니다. (${res.status})`;
+        try { msg = (await res.json()).error || msg; } catch (e) {}
+        if (res.status === 401) { location.href = '{{ url_for("login") }}'; return; }
+        throw new Error(msg);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let pending = false;
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        answer += decoder.decode(value, { stream: true });
+        if (!pending) {
+          pending = true;
+          requestAnimationFrame(() => {
+            const stick = nearBottom();
+            body.innerHTML = renderMarkdown(answer);
+            if (stick) scrollDown();
+            pending = false;
+          });
+        }
+      }
+      answer += decoder.decode();
+      body.innerHTML = renderMarkdown(answer || '응답이 비어 있습니다.');
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        body.innerHTML = renderMarkdown(answer ? answer + '\n\n_(응답이 중지되었습니다)_' : '_(응답이 중지되었습니다)_');
+      } else {
+        body.classList.add('error');
+        body.textContent = '⚠️ ' + err.message;
+      }
+    } finally {
+      if (answer) { convo.push({ role: 'assistant', content: answer }); save(); }
+      else { convo.pop(); save(); }  // 답이 없으면 질문도 기록에서 뺀다
+      controller = null;
+      setStreaming(false);
+      input.focus();
+    }
+  }
+
+  function autoGrow() {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 200) + 'px';
+    if (!controller) sendBtn.disabled = !input.value.trim();
+  }
+
+  input.addEventListener('input', autoGrow);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(input.value); }
+  });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (controller) controller.abort(); else send(input.value);
+  });
+  document.querySelectorAll('.suggest button').forEach(b => b.addEventListener('click', () => send(b.dataset.q)));
+  document.getElementById('newChat').addEventListener('click', () => {
+    if (controller) controller.abort();
+    convo = []; save(); list.innerHTML = '';
+    chat.classList.remove('started'); input.value = ''; autoGrow(); input.focus();
+  });
+
+  restore();
+  const q = new URLSearchParams(location.search).get('q');
+  if (q) { window.history.replaceState(null, '', location.pathname); send(q); }
+  else input.focus();
+</script>
+</body>
+</html>

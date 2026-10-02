@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>회원가입 | FinanFit</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/hana.css') }}">
+  <style>
+    .page { max-width: 720px; margin: 0 auto; padding: 40px 16px 24px; }
+    .head h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+    .head p { color: var(--text-sub); margin-top: 6px; }
+    .steps { display: flex; gap: 8px; margin: 24px 0 28px; }
+    .steps span {
+      flex: 1; height: 4px; border-radius: 4px; background: var(--hana);
+    }
+    .card {
+      background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 32px; margin-bottom: 18px;
+    }
+    .card h2 { font-size: 18px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .card h2 .num {
+      width: 24px; height: 24px; border-radius: 50%; background: var(--hana); color: #fff;
+      font-size: 13px; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .card .desc { color: var(--text-sub); font-size: 14px; margin-bottom: 22px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .grid .full { grid-column: 1 / -1; }
+
+    /* 라디오 칩 */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chips input { position: absolute; opacity: 0; pointer-events: none; }
+    .chips label {
+      padding: 0 18px; height: 46px; display: inline-flex; align-items: center;
+      border: 1px solid var(--line-strong); border-radius: 10px; cursor: pointer;
+      font-weight: 500; font-size: 15px; background: var(--white); transition: .15s;
+    }
+    .chips input:checked + label { border-color: var(--hana); background: var(--hana-light); color: var(--hana-deep); font-weight: 700; }
+    .chips input:focus-visible + label { box-shadow: 0 0 0 3px rgba(0, 132, 133, .2); }
+    .chips.risk label { flex-direction: column; justify-content: center; height: auto; padding: 10px 14px; align-items: flex-start; flex: 1 1 120px; }
+    .chips.risk label small { font-size: 12px; color: var(--text-mute); font-weight: 400; }
+    .chips.risk input:checked + label small { color: var(--hana); }
+
+    /* 프로필 사진 */
+    .profile { display: flex; align-items: center; gap: 20px; }
+    .profile-preview {
+      width: 88px; height: 88px; border-radius: 50%; background: var(--hana-light) center / cover no-repeat;
+      display: flex; align-items: center; justify-content: center; color: var(--hana); flex-shrink: 0;
+      border: 2px dashed #b8dcd9;
+    }
+    .profile-preview.has { border: 2px solid var(--hana); }
+    .profile-preview svg { width: 36px; height: 36px; }
+    .profile-preview.has svg { display: none; }
+    .file-btn { position: relative; overflow: hidden; height: 42px; font-size: 14px; }
+    .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+    .actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 8px; }
+    @media (max-width: 640px) {
+      .card { padding: 22px 18px; }
+      .grid { grid-template-columns: 1fr; }
+      .head h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+<header class="gnb">
+  <div class="gnb-inner">
+    <a href="{{ url_for('login') }}"><span class="logo"></span></a>
+    <div class="gnb-right"><a class="gnb-logout" href="{{ url_for('login') }}">로그인</a></div>
+  </div>
+</header>
+
+<main class="page">
+  <div class="head">
+    <h1>회원가입</h1>
+    <p>입력하신 정보를 바탕으로 손님께 꼭 맞는 금융상품을 추천해 드립니다.</p>
+  </div>
+  <div class="steps"><span></span><span></span><span></span></div>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+    <div class="flash-list">
+      {% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" enctype="multipart/form-data" id="signupForm">
+    <section class="card">
+      <h2><span class="num">1</span>로그인 정보</h2>
+      <p class="desc">로그인에 사용할 아이디와 비밀번호를 입력해 주세요.</p>
+      <div class="grid">
+        <div class="field full">
+          <label for="username">아이디<span class="req">*</span></label>
+          <input class="input" id="username" name="username" value="{{ form.get('username', '') }}"
+                 placeholder="영문·숫자·_ 4~20자" pattern="[A-Za-z0-9_]{4,20}" required>
+        </div>
+        <div class="field">
+          <label for="password">비밀번호<span class="req">*</span></label>
+          <input class="input" id="password" name="password" type="password" minlength="8" placeholder="8자 이상" required>
+        </div>
+        <div class="field">
+          <label for="password_confirm">비밀번호 확인<span class="req">*</span></label>
+          <input class="input" id="password_confirm" name="password_confirm" type="password" minlength="8" placeholder="비밀번호 재입력" required>
+          <span class="hint" id="pwHint"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">2</span>기본 정보</h2>
+      <p class="desc">손님을 알아볼 수 있는 기본 정보를 입력해 주세요.</p>
+      <div class="grid">
+        <div class="field full">
+          <label>프로필 사진</label>
+          <div class="profile">
+            <div class="profile-preview" id="preview">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div>
+            <div>
+              <span class="btn btn-outline file-btn">사진 선택
+                <input type="file" name="profile_image" id="profileInput" accept="image/png,image/jpeg,image/gif,image/webp">
+              </span>
+              <p class="hint" style="margin-top:8px">png·jpg·gif·webp, 5MB 이하 (선택)</p>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="name">이름<span class="req">*</span></label>
+          <input class="input" id="name" name="name" value="{{ form.get('name', '') }}" placeholder="홍길동" required>
+        </div>
+        <div class="field">
+          <label for="email">이메일<span class="req">*</span></label>
+          <input class="input" id="email" name="email" type="email" value="{{ form.get('email', '') }}" placeholder="example@email.com" required>
+        </div>
+        <div class="field">
+          <label for="age">나이<span class="req">*</span></label>
+          <input class="input" id="age" name="age" type="number" min="14" max="120" value="{{ form.get('age', '') }}" placeholder="만 나이" required>
+        </div>
+        <div class="field">
+          <label>성별<span class="req">*</span></label>
+          <div class="chips">
+            {% for g_ in genders %}
+              <input type="radio" name="gender" id="gender{{ loop.index }}" value="{{ g_ }}" {% if form.get('gender') == g_ %}checked{% endif %} required>
+              <label for="gender{{ loop.index }}" style="flex:1;justify-content:center">{{ g_ }}</label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="num">3</span>투자 · 소득 정보</h2>
+      <p class="desc">맞춤 상품 추천에 활용됩니다.</p>
+      {% set risk_desc = {'안정형':'원금 보전 최우선','안정추구형':'낮은 변동성 선호','위험중립형':'수익과 위험 균형','적극투자형':'높은 수익 추구','공격투자형':'고위험 고수익'} %}
+      <div class="grid">
+        <div class="field full">
+          <label>투자성향<span class="req">*</span></label>
+          <div class="chips risk">
+            {% for r in risks %}
+              <input type="radio" name="risk" id="risk{{ loop.index }}" value="{{ r }}" {% if form.get('risk') == r %}checked{% endif %} required>
+              <label for="risk{{ loop.index }}">{{ r }}<small>{{ risk_desc[r] }}</small></label>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="field">
+          <label for="job">직업<span class="req">*</span></label>
+          <select class="select" id="job" name="job" required>
+            <option value="">선택해 주세요</option>
+            {% for j in jobs %}<option {% if form.get('job') == j %}selected{% endif %}>{{ j }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="income">연소득<span class="req">*</span></label>
+          <select class="select" id="income" name="income" required>
+            <option value="">선택해 주세요</option>
+            {% for v, label in incomes %}<option value="{{ v }}" {% if form.get('income') == v|string %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <a class="btn btn-outline" href="{{ url_for('login') }}">취소</a>
+      <button class="btn btn-primary" type="submit">가입하기</button>
+    </div>
+  </form>
+</main>
+<div class="footer">© FinanFit. All rights reserved.</div>
+
+<script>
+  const input = document.getElementById('profileInput');
+  const preview = document.getElementById('preview');
+  input.addEventListener('change', () => {
+    const f = input.files[0];
+    if (!f) { preview.classList.remove('has'); preview.style.backgroundImage = ''; return; }
+    if (f.size > 5 * 1024 * 1024) { alert('프로필 사진은 5MB 이하만 업로드할 수 있습니다.'); input.value = ''; return; }
+    preview.style.backgroundImage = `url(${URL.createObjectURL(f)})`;
+    preview.classList.add('has');
+  });
+
+  const pw = document.getElementById('password'), pw2 = document.getElementById('password_confirm');
+  const hint = document.getElementById('pwHint');
+  function checkPw() {
+    if (!pw2.value) { hint.textContent = ''; pw2.setCustomValidity(''); return; }
+    const ok = pw.value === pw2.value;
+    hint.textContent = ok ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.';
+    hint.style.color = ok ? 'var(--hana)' : 'var(--point)';
+    pw2.setCustomValidity(ok ? '' : '비밀번호가 일치하지 않습니다.');
+  }
+  pw.addEventListener('input', checkPw); pw2.addEventListener('input', checkPw);
+</script>
+</body>
+</html>

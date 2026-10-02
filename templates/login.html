@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>로그인 | FinanFit</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/hana.css') }}">
+  <style>
+    body { background: var(--white); }
+    .wrap { min-height: 100%; display: grid; grid-template-columns: minmax(380px, 46%) 1fr; }
+
+    /* 좌측 브랜드 영역 */
+    .brand {
+      position: relative; overflow: hidden;
+      background: linear-gradient(155deg, var(--hana-mint) 0%, var(--hana) 45%, var(--hana-deep) 100%);
+      color: var(--white); padding: 56px 56px 48px;
+      display: flex; flex-direction: column;
+    }
+    .brand::before, .brand::after {
+      content: ""; position: absolute; border-radius: 50%;
+      background: rgba(255, 255, 255, .07);
+    }
+    .brand::before { width: 520px; height: 520px; right: -180px; bottom: -160px; }
+    .brand::after  { width: 260px; height: 260px; right: 120px; bottom: 180px; background: rgba(255, 255, 255, .05); }
+    .brand-logo {
+      align-self: flex-start; background: var(--white); border-radius: 12px; padding: 10px 16px;
+    }
+    .brand-copy { margin-top: auto; position: relative; z-index: 1; }
+    .brand-copy .eyebrow { font-size: 14px; font-weight: 600; opacity: .85; letter-spacing: .02em; }
+    .brand-copy h1 { font-size: 38px; line-height: 1.32; font-weight: 800; margin: 12px 0 18px; letter-spacing: -.02em; }
+    .brand-copy p { font-size: 16px; opacity: .85; line-height: 1.7; }
+    .brand-points { margin-top: 36px; display: flex; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1; }
+    .brand-points span {
+      font-size: 13px; padding: 8px 14px; border-radius: 999px;
+      background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .22);
+    }
+
+    /* 우측 로그인 폼 */
+    .panel { display: flex; flex-direction: column; padding: 32px; }
+    .panel-top { display: flex; justify-content: flex-end; font-size: 14px; color: var(--text-sub); gap: 6px; }
+    .panel-top a { color: var(--hana); font-weight: 700; }
+    .login-box { width: 100%; max-width: 420px; margin: auto; padding: 40px 0; }
+    .login-box h2 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+    .login-box .sub { color: var(--text-sub); margin: 8px 0 32px; }
+
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+    .tabs span { text-align: center; padding: 12px 0; font-weight: 700; color: var(--text-mute); }
+    .tabs span.on { color: var(--hana); box-shadow: inset 0 -3px 0 var(--hana); }
+
+    form { display: flex; flex-direction: column; gap: 14px; }
+    .pw-wrap { position: relative; }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      font-size: 13px; color: var(--text-sub); padding: 6px;
+    }
+    .row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--text-sub); }
+    .check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+    .check input { width: 18px; height: 18px; accent-color: var(--hana); }
+    .divider { display: flex; align-items: center; gap: 12px; color: var(--text-mute); font-size: 13px; margin: 26px 0 16px; }
+    .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+    .notice {
+      margin-top: 28px; padding: 16px 18px; border-radius: 12px; background: var(--bg);
+      font-size: 13px; color: var(--text-sub); line-height: 1.7;
+    }
+    .notice b { color: var(--hana-deep); }
+
+    @media (max-width: 900px) {
+      .wrap { grid-template-columns: 1fr; }
+      .brand { padding: 28px 20px 32px; min-height: 0; }
+      .brand-copy { margin-top: 36px; }
+      .brand-copy h1 { font-size: 26px; }
+      .brand-points { display: none; }
+      .panel { padding: 16px; }
+      .login-box { padding: 24px 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <section class="brand">
+    <div class="brand-logo"><span class="logo"></span></div>
+    <div class="brand-copy">
+      <div class="eyebrow">FinanFit 맞춤 금융</div>
+      <h1>손님의 내일을<br>함께 설계합니다</h1>
+      <p>나이·투자성향·직업·소득에 꼭 맞는 예금과 적금을<br>AI 상담사가 쉽고 정확하게 안내해 드립니다.</p>
+    </div>
+    <div class="brand-points">
+      <span>맞춤 상품 추천</span><span>AI 금융 상담</span><span>안전한 정보 보호</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-top">아직 회원이 아니신가요? <a href="{{ url_for('signup') }}">회원가입</a></div>
+
+    <div class="login-box">
+      <h2>로그인</h2>
+      <p class="sub">FinanFit에 오신 것을 환영합니다.</p>
+
+      {% with msgs = get_flashed_messages(with_categories=true) %}
+        {% if msgs %}
+        <div class="flash-list">
+          {% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}
+        </div>
+        {% endif %}
+      {% endwith %}
+
+      <div class="tabs"><span class="on">아이디 로그인</span><span>간편 로그인 (준비중)</span></div>
+
+      <form method="post" autocomplete="on">
+        <div class="field">
+          <label for="username">아이디</label>
+          <input class="input" id="username" name="username" value="{{ username }}" placeholder="아이디를 입력해 주세요" required autofocus>
+        </div>
+        <div class="field">
+          <label for="password">비밀번호</label>
+          <div class="pw-wrap">
+            <input class="input" id="password" name="password" type="password" placeholder="비밀번호를 입력해 주세요" required>
+            <button type="button" class="pw-toggle" id="pwToggle">보기</button>
+          </div>
+        </div>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="saveId"> 아이디 저장</label>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" style="margin-top:6px">로그인</button>
+      </form>
+
+      <div class="divider">처음 오셨나요?</div>
+      <a class="btn btn-outline btn-block" href="{{ url_for('signup') }}">회원가입하고 맞춤 상품 받기</a>
+
+      <div class="notice">
+        <b>안전한 금융거래 안내</b><br>
+        FinanFit은 어떠한 경우에도 전화·문자로 비밀번호를 요구하지 않습니다.
+      </div>
+    </div>
+
+    <div class="footer">© FinanFit. All rights reserved.</div>
+  </section>
+</div>
+
+<script>
+  const idInput = document.getElementById('username');
+  const saveId = document.getElementById('saveId');
+  try {
+    const saved = localStorage.getItem('finanfit_saved_id');
+    if (saved) { saveId.checked = true; if (!idInput.value) idInput.value = saved; }
+  } catch (e) {}
+  document.querySelector('form').addEventListener('submit', () => {
+    try {
+      if (saveId.checked) localStorage.setItem('finanfit_saved_id', idInput.value);
+      else localStorage.removeItem('finanfit_saved_id');
+    } catch (e) {}
+  });
+  const pw = document.getElementById('password');
+  document.getElementById('pwToggle').addEventListener('click', e => {
+    const show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    e.target.textContent = show ? '숨기기' : '보기';
+  });
+</script>
+</body>
+</html>
